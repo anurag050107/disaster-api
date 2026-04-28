@@ -9,13 +9,14 @@ import org.springframework.web.bind.annotation.*;
 public class SOSController {
 
     @Autowired
-    private CSVStorageService csvStorageService;
+    private SOSRepository sosRepository;
+
     @PostMapping("/trigger-sos")
-    public String handleSOS(@RequestBody SOSRequest request) {
-        System.out.println("🚨 SOS RECEIVED!");
-        System.out.println("ID: " + request.getStudentId());
-        System.out.println("Location: " + request.getLatitude() + "," + request.getLongitude());
-        csvStorageService.saveOne(request);
-        return "SOS Sent to HQ";
+    public String triggerSOS(@RequestBody SOSRequest request) {
+        sosRepository.save(request);
+
+        System.out.println("🚨 CLOUD SOS RECEIVED from: " + request.getStudentId());
+
+        return "SOS Signal Received and Saved to Cloud!";
     }
 }
