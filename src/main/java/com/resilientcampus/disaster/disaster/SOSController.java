@@ -26,4 +26,9 @@ public class SOSController {
     public List<SOSRequest> getAllAlerts() {
         return sosRepository.findAll();
     }
+    @DeleteMapping("/clear-all")
+    public String clearAllAlerts() {
+        sosRepository.deleteAll();
+        return "All alerts cleared from database!";
+    }
 }
