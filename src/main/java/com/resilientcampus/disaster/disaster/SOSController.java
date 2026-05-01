@@ -15,12 +15,13 @@ public class SOSController {
 
     @PostMapping("/trigger-sos")
     public String triggerSOS(@RequestBody SOSRequest request) {
+        request.setTime(new java.util.Date().toString());
         sosRepository.save(request);
 
         System.out.println("🚨 CLOUD SOS RECEIVED from: " + request.getStudentId());
-
         return "SOS Signal Received and Saved to Cloud!";
     }
+
     @GetMapping("/all-alerts")
     public List<SOSRequest> getAllAlerts() {
         return sosRepository.findAll();
