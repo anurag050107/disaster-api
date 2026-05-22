@@ -2,9 +2,9 @@ package com.resilientcampus.disaster.disaster;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import java.util.List;
-import java.util.Date;
+
 @RestController
 @RequestMapping("/api")
 @CrossOrigin(origins = "*")
@@ -14,8 +14,11 @@ public class SOSController {
     private SOSRepository sosRepository;
 
     @PostMapping("/trigger-sos")
-    public String triggerSOS(@RequestBody SOSRequest request) {
+    public String triggerSOS(@ModelAttribute SOSRequest request) {
+        // Set the timestamp
         request.setTime(new java.util.Date().toString());
+
+        // Save everything (including the mediaUrl) to MongoDB
         sosRepository.save(request);
 
         System.out.println("🚨 CLOUD SOS RECEIVED from: " + request.getStudentId());
@@ -26,6 +29,7 @@ public class SOSController {
     public List<SOSRequest> getAllAlerts() {
         return sosRepository.findAll();
     }
+
     @DeleteMapping("/clear-all")
     public String clearAllAlerts() {
         sosRepository.deleteAll();
