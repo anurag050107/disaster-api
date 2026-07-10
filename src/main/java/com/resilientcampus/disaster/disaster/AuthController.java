@@ -2,6 +2,7 @@ package com.resilientcampus.disaster.disaster;
 
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,6 +19,9 @@ public class AuthController {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Value("${super.master.email}")
+    private String superMasterEmail;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody Map<String, String> body) {
@@ -46,14 +50,32 @@ public class AuthController {
         user.setPassword(hashedPassword);
         user.setName(name != null ? name : "");
         user.setCreatedAt(System.currentTimeMillis());
+
+        // Check if this is the super master
+        if (superMasterEmail != null && !superMasterEmail.isBlank() && superMasterEmail.equalsIgnoreCase(email)) {
+            user.setRole("super_master");
+            user.setStatus("approved");
+            adminUserRepository.save(user);
+
+            String token = jwtUtil.generateToken(email);
+            Map<String, Object> result = new HashMap<>();
+            result.put("success", true);
+            result.put("token", token);
+            result.put("email", email);
+            result.put("name", name);
+            result.put("role", "super_master");
+            return ResponseEntity.ok(result);
+        }
+
+        // Regular user — needs approval
+        user.setRole("admin");
+        user.setStatus("pending");
         adminUserRepository.save(user);
 
-        String token = jwtUtil.generateToken(email);
         Map<String, Object> result = new HashMap<>();
         result.put("success", true);
-        result.put("token", token);
-        result.put("email", email);
-        result.put("name", name);
+        result.put("status", "pending");
+        result.put("message", "Account created. Waiting for super master approval.");
         return ResponseEntity.ok(result);
     }
 
@@ -73,12 +95,23 @@ public class AuthController {
                     .body(Map.of("success", false, "message", "Invalid email or password"));
         }
 
+        if ("pending".equals(user.getStatus())) {
+            return ResponseEntity.status(403)
+                    .body(Map.of("success", false, "status", "pending", "message", "Your account is pending approval by the super master."));
+        }
+
+        if ("rejected".equals(user.getStatus())) {
+            return ResponseEntity.status(403)
+                    .body(Map.of("success", false, "status", "rejected", "message", "Your account has been rejected. Contact the super master."));
+        }
+
         String token = jwtUtil.generateToken(email);
         Map<String, Object> result = new HashMap<>();
         result.put("success", true);
         result.put("token", token);
         result.put("email", email);
         result.put("name", user.getName());
+        result.put("role", user.getRole());
         return ResponseEntity.ok(result);
     }
 }
