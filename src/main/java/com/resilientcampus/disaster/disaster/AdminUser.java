@@ -11,6 +11,8 @@ public class AdminUser {
     private String email;
     private String password;
     private String name;
+    private String role;   // "super_master" or "admin"
+    private String status; // "pending", "approved", "rejected"
     private long createdAt;
 
     public AdminUser() {}
@@ -26,6 +28,12 @@ public class AdminUser {
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
+
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 
     public long getCreatedAt() { return createdAt; }
     public void setCreatedAt(long createdAt) { this.createdAt = createdAt; }
